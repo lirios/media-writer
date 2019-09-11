@@ -1,0 +1,25 @@
+find_package(Liblzma)
+
+liri_add_executable(LiriMediaWriterHelper
+    OUTPUT_NAME
+        "helper"
+    INSTALL_DIRECTORY
+        "${INSTALL_LIBEXECDIR}"
+    SOURCES
+        main.cpp
+        writejob.cpp
+        writejob.h
+        restorejob.cpp
+        restorejob.h
+    RESOURCES
+        "${CMAKE_SOURCE_DIR}/translations/translations.qrc"
+    DEFINES
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_FOREACH
+    LIBRARIES
+        Qt5::Core
+        Qt5::DBus
+        Qt5::Network
+        MediaWriter::IsoMD5
+        PkgConfig::Liblzma
+)

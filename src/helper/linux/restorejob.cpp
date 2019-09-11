@@ -43,28 +43,28 @@ RestoreJob::RestoreJob(const QString &where)
 
 void RestoreJob::work()
 {
-    QDBusInterface device("org.freedesktop.UDisks2", where, "org.freedesktop.UDisks2.Block", QDBusConnection::systemBus(), this);
+    QDBusInterface device(QStringLiteral("org.freedesktop.UDisks2"), where, QStringLiteral("org.freedesktop.UDisks2.Block"), QDBusConnection::systemBus(), this);
     QString drivePath = qvariant_cast<QDBusObjectPath>(device.property("Drive")).path();
-    QDBusInterface drive("org.freedesktop.UDisks2", drivePath, "org.freedesktop.UDisks2.Drive", QDBusConnection::systemBus(), this);
-    QDBusInterface manager("org.freedesktop.UDisks2", "/org/freedesktop/UDisks2", "org.freedesktop.DBus.ObjectManager", QDBusConnection::systemBus());
-    QDBusMessage message = manager.call("GetManagedObjects");
+    QDBusInterface drive(QStringLiteral("org.freedesktop.UDisks2"), drivePath, QStringLiteral("org.freedesktop.UDisks2.Drive"), QDBusConnection::systemBus(), this);
+    QDBusInterface manager(QStringLiteral("org.freedesktop.UDisks2"), QStringLiteral("/org/freedesktop/UDisks2"), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QDBusConnection::systemBus());
+    QDBusMessage message = manager.call(QStringLiteral("GetManagedObjects"));
 
     if (message.arguments().length() == 1) {
         QDBusArgument arg = qvariant_cast<QDBusArgument>(message.arguments().first());
         DBusIntrospection objects;
         arg >> objects;
         for (auto i : objects.keys()) {
-            if (objects[i].contains("org.freedesktop.UDisks2.Filesystem")) {
-                QString currentDrivePath = qvariant_cast<QDBusObjectPath>(objects[i]["org.freedesktop.UDisks2.Block"]["Drive"]).path();
+            if (objects[i].contains(QStringLiteral("org.freedesktop.UDisks2.Filesystem"))) {
+                QString currentDrivePath = qvariant_cast<QDBusObjectPath>(objects[i][QStringLiteral("org.freedesktop.UDisks2.Block")][QStringLiteral("Drive")]).path();
                 if (currentDrivePath == drivePath) {
-                    QDBusInterface partition("org.freedesktop.UDisks2", i.path(), "org.freedesktop.UDisks2.Filesystem", QDBusConnection::systemBus());
-                    message = partition.call("Unmount", Properties { {"force", true} });
+                    QDBusInterface partition(QStringLiteral("org.freedesktop.UDisks2"), i.path(), QStringLiteral("org.freedesktop.UDisks2.Filesystem"), QDBusConnection::systemBus());
+                    message = partition.call(QStringLiteral("Unmount"), Properties { {QStringLiteral("force"), true} });
                 }
             }
         }
     }
 
-    QDBusReply<void> formatReply = device.call("Format", "dos", Properties());
+    QDBusReply<void> formatReply = device.call(QStringLiteral("Format"), QStringLiteral("dos"), Properties());
     if (!formatReply.isValid() && formatReply.error().type() != QDBusError::NoReply) {
         err << formatReply.error().message() << "\n";
         err.flush();
@@ -72,8 +72,8 @@ void RestoreJob::work()
         return;
     }
 
-    QDBusInterface partitionTable("org.freedesktop.UDisks2", where, "org.freedesktop.UDisks2.PartitionTable", QDBusConnection::systemBus(), this);
-    QDBusReply<QDBusObjectPath> partitionReply = partitionTable.call("CreatePartition", 0ULL, device.property("Size").toULongLong(), "", "", Properties());
+    QDBusInterface partitionTable(QStringLiteral("org.freedesktop.UDisks2"), where, QStringLiteral("org.freedesktop.UDisks2.PartitionTable"), QDBusConnection::systemBus(), this);
+    QDBusReply<QDBusObjectPath> partitionReply = partitionTable.call(QStringLiteral("CreatePartition"), 0ULL, device.property("Size").toULongLong(), QString(), QString(), Properties());
     if (!partitionReply.isValid()) {
         err << partitionReply.error().message();
         err.flush();
@@ -81,8 +81,8 @@ void RestoreJob::work()
         return;
     }
     QString partitionPath = partitionReply.value().path();
-    QDBusInterface partition("org.freedesktop.UDisks2", partitionPath, "org.freedesktop.UDisks2.Block", QDBusConnection::systemBus(), this);
-    QDBusReply<void> formatPartitionReply = partition.call("Format", "vfat", Properties { {"update-partition-type", true} });
+    QDBusInterface partition(QStringLiteral("org.freedesktop.UDisks2"), partitionPath, QStringLiteral("org.freedesktop.UDisks2.Block"), QDBusConnection::systemBus(), this);
+    QDBusReply<void> formatPartitionReply = partition.call(QStringLiteral("Format"), QStringLiteral("vfat"), Properties { {QStringLiteral("update-partition-type"), true} });
     if (!formatPartitionReply.isValid() && formatPartitionReply.error().type() != QDBusError::NoReply) {
         err << formatPartitionReply.error().message() << "\n";
         err.flush();

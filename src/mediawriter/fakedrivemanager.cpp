@@ -29,19 +29,19 @@ FakeDriveProvider::FakeDriveProvider(DriveManager *parent)
 
 void FakeDriveProvider::createNewRestoreable() {
     static uint64_t size = 4444444444;
-    emit driveConnected(new FakeDrive(this, "Contains Live", size, true));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Contains Live"), size, true));
     size++;
 }
 
 void FakeDriveProvider::createNewGetsDisconnected() {
-    emit driveConnected(new FakeDrive(this, "Gets Disconnected", 1000000000, false));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Gets Disconnected"), 1000000000, false));
 }
 
 void FakeDriveProvider::connectDrives() {
-    emit driveConnected(new FakeDrive(this, "Okay", 12345678900, false));
-    emit driveConnected(new FakeDrive(this, "Fails", 9876543210, false));
-    emit driveConnected(new FakeDrive(this, "Not Large Enough", 10000, false));
-    emit driveConnected(new FakeDrive(this, "Gets Disconnected", 10000000000, false));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Okay"), 12345678900, false));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Fails"), 9876543210, false));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Not Large Enough"), 10000, false));
+    emit driveConnected(new FakeDrive(this, QStringLiteral("Gets Disconnected"), 10000000000, false));
     QTimer::singleShot(2000, this, SLOT(createNewRestoreable()));
 }
 
@@ -75,20 +75,20 @@ void FakeDrive::writingAdvanced() {
     m_progress->setValue(m_progress->value() + 123456789);
     if (m_progress->value() >= m_size) {
         m_image->setStatus(ReleaseVariant::FINISHED);
-        Notifications::notify("Success", "Yes!");
+        Notifications::notify(QStringLiteral("Success"), QStringLiteral("Yes!"));
     }
-    else if (m_name == "Fails" && m_progress->value() >= m_size / 2) {
+    else if (m_name == QStringLiteral("Fails") && m_progress->value() >= m_size / 2) {
         m_image->setStatus(ReleaseVariant::FAILED);
-        m_image->setErrorString("Some error string.");
-        Notifications::notify("Failed", "FAILED");
+        m_image->setErrorString(QStringLiteral("Some error string."));
+        Notifications::notify(QStringLiteral("Failed"), QStringLiteral("FAILED"));
     }
-    else if (m_name == "Gets Disconnected" && m_progress->value() >= m_size / 2) {
+    else if (m_name == QStringLiteral("Gets Disconnected") && m_progress->value() >= m_size / 2) {
         emit qobject_cast<FakeDriveProvider*>(parent())->driveRemoved(this);
         QTimer::singleShot(5000, qobject_cast<FakeDriveProvider*>(parent()), SLOT(createNewGetsDisconnected()));
         this->deleteLater();
         m_image->setStatus(ReleaseVariant::FAILED);
-        m_image->setErrorString(QString("Drive %1 got disconnected.").arg(name()));
-        Notifications::notify("Failed", "FAILED");
+        m_image->setErrorString(QStringLiteral("Drive %1 got disconnected.").arg(name()));
+        Notifications::notify(QStringLiteral("Failed"), QStringLiteral("FAILED"));
     }
     else {
         QTimer::singleShot(100, this, SLOT(writingAdvanced()));

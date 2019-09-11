@@ -28,8 +28,8 @@
 # include <QDBusInterface>
 
 void Notifications::notify(const QString &title, const QString &body) {
-    QDBusInterface notifications("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications", QDBusConnection::sessionBus());
-    auto reply = notifications.call("Notify", "Fedora Media Writer", 0U, "mediawriter", title, body, QStringList{}, QVariantMap{}, -1);
+    QDBusInterface notifications(QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("/org/freedesktop/Notifications"), QStringLiteral("org.freedesktop.Notifications"), QDBusConnection::sessionBus());
+    auto reply = notifications.call(QStringLiteral("Notify"), QStringLiteral("Fedora Media Writer"), 0U, QStringLiteral("mediawriter"), title, body, QStringList{}, QVariantMap{}, -1);
     if (reply.type() == QDBusMessage::ErrorMessage)
         mWarning() << "Couldn't send a notification:" << reply.errorName() << "-" << reply.errorMessage();
 }
@@ -50,7 +50,7 @@ void Notifications::notify(const QString &title, const QString &body) {
 #ifdef _WIN32
 
 void Notifications::notify(const QString &title, const QString &body) {
-    static QSystemTrayIcon *icon = new QSystemTrayIcon(QIcon(":/icon.ico"));
+    static QSystemTrayIcon *icon = new QSystemTrayIcon(QIcon(QStringLiteral(":/icon.ico")));
     if (!icon->isVisible())
         icon->show();
     icon->showMessage(title, body);

@@ -69,21 +69,21 @@ int WriteJob::onMediaCheckAdvanced(long long offset, long long total) {
 }
 
 QDBusUnixFileDescriptor WriteJob::getDescriptor() {
-    QDBusInterface device("org.freedesktop.UDisks2", where, "org.freedesktop.UDisks2.Block", QDBusConnection::systemBus(), this);
+    QDBusInterface device(QStringLiteral("org.freedesktop.UDisks2"), where, QStringLiteral("org.freedesktop.UDisks2.Block"), QDBusConnection::systemBus(), this);
     QString drivePath = qvariant_cast<QDBusObjectPath>(device.property("Drive")).path();
-    QDBusInterface manager("org.freedesktop.UDisks2", "/org/freedesktop/UDisks2", "org.freedesktop.DBus.ObjectManager", QDBusConnection::systemBus());
-    QDBusMessage message = manager.call("GetManagedObjects");
+    QDBusInterface manager(QStringLiteral("org.freedesktop.UDisks2"), QStringLiteral("/org/freedesktop/UDisks2"), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QDBusConnection::systemBus());
+    QDBusMessage message = manager.call(QStringLiteral("GetManagedObjects"));
 
     if (message.arguments().length() == 1) {
         QDBusArgument arg = qvariant_cast<QDBusArgument>(message.arguments().first());
         DBusIntrospection objects;
         arg >> objects;
         for (auto i : objects.keys()) {
-            if (objects[i].contains("org.freedesktop.UDisks2.Filesystem")) {
-                QString currentDrivePath = qvariant_cast<QDBusObjectPath>(objects[i]["org.freedesktop.UDisks2.Block"]["Drive"]).path();
+            if (objects[i].contains(QStringLiteral("org.freedesktop.UDisks2.Filesystem"))) {
+                QString currentDrivePath = qvariant_cast<QDBusObjectPath>(objects[i][QStringLiteral("org.freedesktop.UDisks2.Block")][QStringLiteral("Drive")]).path();
                 if (currentDrivePath == drivePath) {
-                    QDBusInterface partition("org.freedesktop.UDisks2", i.path(), "org.freedesktop.UDisks2.Filesystem", QDBusConnection::systemBus());
-                    message = partition.call("Unmount", Properties { {"force", true} });
+                    QDBusInterface partition(QStringLiteral("org.freedesktop.UDisks2"), i.path(), QStringLiteral("org.freedesktop.UDisks2.Filesystem"), QDBusConnection::systemBus());
+                    message = partition.call(QStringLiteral("Unmount"), Properties { {QStringLiteral("force"), true} });
                 }
             }
         }
@@ -95,7 +95,7 @@ QDBusUnixFileDescriptor WriteJob::getDescriptor() {
         return QDBusUnixFileDescriptor(-1);
     }
 
-    QDBusReply<QDBusUnixFileDescriptor> reply = device.callWithArgumentList(QDBus::Block, "OpenForBenchmark", {Properties{{"writable", true}}} );
+    QDBusReply<QDBusUnixFileDescriptor> reply = device.callWithArgumentList(QDBus::Block, QStringLiteral("OpenForBenchmark"), {Properties{{QStringLiteral("writable"), true}}} );
     QDBusUnixFileDescriptor fd = reply.value();
 
     if (!fd.isValid()) {
@@ -109,7 +109,7 @@ QDBusUnixFileDescriptor WriteJob::getDescriptor() {
 }
 
 bool WriteJob::write(int fd) {
-    if (what.endsWith(".xz"))
+    if (what.endsWith(QStringLiteral(".xz")))
         return writeCompressed(fd);
     else
         return writePlain(fd);
@@ -273,7 +273,7 @@ void WriteJob::work() {
     if (fd.fileDescriptor() < 0)
         return;
 
-    if (what.endsWith(".part")) {
+    if (what.endsWith(QStringLiteral(".part"))) {
         watcher.addPath(what);
     }
     else {
@@ -288,7 +288,7 @@ void WriteJob::onFileChanged(const QString &path) {
     if (QFile::exists(path))
         return;
 
-    what = what.replace(QRegExp(".part$"), "");
+    what = what.replace(QRegExp(QStringLiteral(".part$")), QStringLiteral(""));
 
     if (!QFile::exists(what)) {
         qApp->exit(4);

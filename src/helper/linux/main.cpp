@@ -28,13 +28,13 @@ int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
 
     QTranslator translator;
-    translator.load(QLocale(), QString(), QString(), ":/translations");
+    translator.load(QLocale(), QString(), QString(), QStringLiteral(":/translations"));
     app.installTranslator(&translator);
 
-    if (app.arguments().count() == 3 && app.arguments()[1] == "restore") {
+    if (app.arguments().count() == 3 && app.arguments()[1] == QStringLiteral("restore")) {
         new RestoreJob(app.arguments()[2]);
     }
-    else if (app.arguments().count() == 4 && app.arguments()[1] == "write") {
+    else if (app.arguments().count() == 4 && app.arguments()[1] == QStringLiteral("write")) {
         new WriteJob(app.arguments()[2], app.arguments()[3]);
     }
     else {

@@ -42,27 +42,27 @@ QString DownloadManager::dir() {
 }
 
 QString DownloadManager::userAgent() {
-    QString ret = QString("FedoraMediaWriter/%1 (").arg(MEDIAWRITER_VERSION);
+    QString ret = QStringLiteral("FedoraMediaWriter/%1 (").arg(QStringLiteral(MEDIAWRITER_VERSION));
 #if QT_VERSION >= 0x050400
-    ret.append(QString("%1").arg(QSysInfo::prettyProductName().replace(QRegExp("[()]"), "")));
-    ret.append(QString("; %1").arg(QSysInfo::buildAbi()));
+    ret.append(QSysInfo::prettyProductName().replace(QRegExp(QStringLiteral("[()]")), QString()));
+    ret.append(QStringLiteral("; %1").arg(QSysInfo::buildAbi()));
 #else
     // TODO probably should follow the format of prettyProductName, however this will be a problem just on Debian it seems
 # ifdef __linux__
-    ret.append("linux");
+    ret.append(QStringLiteral("linux"));
 # endif // __linux__
 # ifdef __APPLE__
-    ret.append("mac");
+    ret.append(QStringLiteral("mac"));
 # endif // __APPLE__
 # ifdef _WIN32
-    ret.append("windows");
+    ret.append(QStringLiteral("windows"));
 # endif // _WIN32
 #endif
-    ret.append(QString("; %1").arg(QLocale(QLocale().language()).name()));
+    ret.append(QStringLiteral("; %1").arg(QLocale(QLocale().language()).name()));
 #ifdef MEDIAWRITER_PLATFORM_DETAILS
-    ret.append(QString("; %1").arg(MEDIAWRITER_PLATFORM_DETAILS));
+    ret.append(QStringLiteral("; %1").arg(MEDIAWRITER_PLATFORM_DETAILS));
 #endif
-    ret.append(")");
+    ret.append(QStringLiteral(")"));
 
     return ret;
 }
@@ -72,7 +72,7 @@ QString DownloadManager::userAgent() {
  */
 QString DownloadManager::downloadFile(DownloadReceiver *receiver, const QUrl &url, const QString &folder, Progress *progress) {
     mDebug() << this->metaObject()->className() << "Going to download" << url;
-    QString bareFileName = QString("%1/%2").arg(folder).arg(url.fileName());
+    QString bareFileName = QStringLiteral("%1/%2").arg(folder).arg(url.fileName());
 
     QDir dir;
     dir.mkpath(folder);
@@ -90,9 +90,9 @@ QString DownloadManager::downloadFile(DownloadReceiver *receiver, const QUrl &ur
 
     m_current = new Download(this, receiver, bareFileName, progress);
     connect(m_current, &QObject::destroyed, [&](){ m_current = nullptr; });
-    fetchPageAsync(this, "https://mirrors.fedoraproject.org/mirrorlist?path=" + url.path());
+    fetchPageAsync(this, QStringLiteral("https://mirrors.fedoraproject.org/mirrorlist?path=") + url.path());
 
-    return bareFileName + ".part";
+    return bareFileName + QStringLiteral(".part");
 }
 
 void DownloadManager::fetchPageAsync(DownloadReceiver *receiver, const QString &url) {
@@ -126,7 +126,7 @@ QNetworkReply *DownloadManager::tryAnotherMirror() {
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 #endif
     request.setUrl(m_mirrorCache.first());
-    request.setRawHeader("Range", QString("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
+    request.setRawHeader("Range", QStringLiteral("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
     if (!options.noUserAgent)
         request.setHeader(QNetworkRequest::UserAgentHeader, userAgent());
 
@@ -149,8 +149,8 @@ void DownloadManager::onStringDownloaded(const QString &text) {
     mDebug() << this->metaObject()->className() << "Received a list of mirrors";
 
     QStringList mirrors;
-    for (const QString &i : text.split("\n")) {
-        if (!i.trimmed().startsWith("#") && !i.trimmed().isEmpty()) {
+    for (const QString &i : text.split(QStringLiteral("\n"))) {
+        if (!i.trimmed().startsWith(QStringLiteral("#")) && !i.trimmed().isEmpty()) {
             mirrors.append(i.trimmed());
             if (mirrors.count() == 8)
                 break;
@@ -168,7 +168,7 @@ void DownloadManager::onStringDownloaded(const QString &text) {
 #endif
     request.setUrl(m_mirrorCache.first());
 
-    request.setRawHeader("Range", QString("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
+    request.setRawHeader("Range", QStringLiteral("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
     if (!options.noUserAgent)
         request.setHeader(QNetworkRequest::UserAgentHeader, userAgent());
 
@@ -190,7 +190,7 @@ void DownloadManager::onDownloadError(const QString &message) {
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 #endif
     request.setUrl(m_mirrorCache.first());
-    request.setRawHeader("Range", QString("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
+    request.setRawHeader("Range", QStringLiteral("bytes=%1-").arg(m_current->bytesDownloaded()).toLocal8Bit());
     if (!options.noUserAgent)
         request.setHeader(QNetworkRequest::UserAgentHeader, userAgent());
 
@@ -215,7 +215,7 @@ Download::Download(DownloadManager *parent, DownloadReceiver *receiver, const QS
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(onTimedOut()));
 
     if (!m_path.isEmpty()) {
-        m_file = new QFile(m_path + ".part", this);
+        m_file = new QFile(m_path + QStringLiteral(".part"), this);
 
         if (m_file->exists()) {
             m_bytesDownloaded = m_file->size();
@@ -379,13 +379,13 @@ void Download::onFinished() {
         mDebug() << this->metaObject()->className() << "Finished successfully";
         if (m_file) {
             m_file->close();
-            m_receiver->onFileDownloaded(m_file->fileName(), m_hash.result().toHex());
+            m_receiver->onFileDownloaded(m_file->fileName(), QString::fromLocal8Bit(m_hash.result().toHex()));
             m_reply->deleteLater();
             m_reply = nullptr;
             deleteLater();
         }
         else {
-            m_receiver->onStringDownloaded(m_buf);
+            m_receiver->onStringDownloaded(QString::fromUtf8(m_buf));
             m_reply->deleteLater();
             m_reply = nullptr;
             deleteLater();

@@ -41,7 +41,7 @@ DriveManager::DriveManager(QObject *parent)
     : QAbstractListModel(parent), m_provider(DriveProvider::create(this))
 {
     mDebug() << this->metaObject()->className() << "construction";
-    qmlRegisterUncreatableType<Drive>("MediaWriter", 1, 0, "Drive", "");
+    qmlRegisterUncreatableType<Drive>("MediaWriter", 1, 0, "Drive", QStringLiteral("Unable to create Drive instance"));
 
     connect(m_provider, &DriveProvider::driveConnected, this, &DriveManager::onDriveConnected);
     connect(m_provider, &DriveProvider::driveRemoved, this, &DriveManager::onDriveRemoved);
@@ -58,9 +58,9 @@ QVariant DriveManager::headerData(int section, Qt::Orientation orientation, int 
     Q_UNUSED(section); Q_UNUSED(orientation);
 
     if (role == Qt::UserRole + 1)
-        return "drive";
+        return QStringLiteral("drive");
     if (role == Qt::UserRole + 2)
-        return "display";
+        return QStringLiteral("display");
 
     return QVariant();
 }
@@ -221,28 +221,28 @@ Progress *Drive::progress() const {
 }
 
 QString Drive::name() const {
-    return QString("%1 (%2)").arg(m_name).arg(readableSize());
+    return QStringLiteral("%1 (%2)").arg(m_name).arg(readableSize());
 }
 
 QString Drive::readableSize() const {
     QString sizeStr;
     if (m_size < (1000UL)) {
-        sizeStr = QString("%1 B").arg(m_size);
+        sizeStr = QStringLiteral("%1 B").arg(m_size);
     }
     else if (m_size < (1000000UL)) {
-        sizeStr = QString("%1 KB").arg(m_size / 1000.0, 0, 'f', 1);
+        sizeStr = QStringLiteral("%1 KB").arg(m_size / 1000.0, 0, 'f', 1);
     }
     else if (m_size < (1000000000UL)) {
-        sizeStr = QString("%1 MB").arg(m_size / 1000000.0, 0, 'f', 1);
+        sizeStr = QStringLiteral("%1 MB").arg(m_size / 1000000.0, 0, 'f', 1);
     }
     else if (m_size < (1000000000000UL)) {
-        sizeStr = QString("%1 GB").arg(m_size / 1000000000.0, 0, 'f', 1);
+        sizeStr = QStringLiteral("%1 GB").arg(m_size / 1000000000.0, 0, 'f', 1);
     }
     else if (m_size < (1000000000000000UL)) {
-        sizeStr = QString("%1 TB").arg(m_size / 1000000000000.0, 0, 'f', 1);
+        sizeStr = QStringLiteral("%1 TB").arg(m_size / 1000000000000.0, 0, 'f', 1);
     }
     else { // better be ready for exabyte images and drives
-        sizeStr = QString("%1 EB").arg(m_size / 1000000000000000.0, 0, 'f', 1);
+        sizeStr = QStringLiteral("%1 EB").arg(m_size / 1000000000000000.0, 0, 'f', 1);
     }
     return sizeStr;
 }

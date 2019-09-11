@@ -67,9 +67,9 @@ int main(int argc, char **argv)
     }
 #endif
 
-    QApplication::setOrganizationDomain("fedoraproject.org");
-    QApplication::setOrganizationName("fedoraproject.org");
-    QApplication::setApplicationName("MediaWriter");
+    QApplication::setOrganizationDomain(QStringLiteral("fedoraproject.org"));
+    QApplication::setOrganizationName(QStringLiteral("fedoraproject.org"));
+    QApplication::setApplicationName(QStringLiteral("MediaWriter"));
 
 #ifdef __linux
     // qt x11 scaling is broken
@@ -91,20 +91,20 @@ int main(int argc, char **argv)
     mDebug() << "Application constructed";
 
     QTranslator translator;
-    translator.load(QLocale(QLocale().language(), QLocale().country()), QString(), QString(), ":/translations");
+    translator.load(QLocale(QLocale().language(), QLocale().country()), QString(), QString(), QStringLiteral(":/translations"));
     app.installTranslator(&translator);
 
     mDebug() << "Injecting QML context properties";
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("drives", DriveManager::instance());
-    engine.rootContext()->setContextProperty("releases", new ReleaseManager());
-    engine.rootContext()->setContextProperty("downloadManager", DownloadManager::instance());
-    engine.rootContext()->setContextProperty("mediawriterVersion", MEDIAWRITER_VERSION);
-    engine.rootContext()->setContextProperty("versionChecker", new VersionChecker());
+    engine.rootContext()->setContextProperty(QStringLiteral("drives"), DriveManager::instance());
+    engine.rootContext()->setContextProperty(QStringLiteral("releases"), new ReleaseManager());
+    engine.rootContext()->setContextProperty(QStringLiteral("downloadManager"), DownloadManager::instance());
+    engine.rootContext()->setContextProperty(QStringLiteral("mediawriterVersion"), QStringLiteral(MEDIAWRITER_VERSION));
+    engine.rootContext()->setContextProperty(QStringLiteral("versionChecker"), new VersionChecker());
 #if (defined(__linux) || defined(_WIN32))
-    engine.rootContext()->setContextProperty("platformSupportsDelayedWriting", true);
+    engine.rootContext()->setContextProperty(QStringLiteral("platformSupportsDelayedWriting"), true);
 #else
-    engine.rootContext()->setContextProperty("platformSupportsDelayedWriting", false);
+    engine.rootContext()->setContextProperty(QStringLiteral("platformSupportsDelayedWriting"), false);
 #endif
     mDebug() << "Loading the QML source code";
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
